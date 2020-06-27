@@ -12,18 +12,18 @@ def browser():
     browser.quit()
 
 
-def test_app_title_is_shown(browser):
+def test_app_title_is_shown(browser, live_server):
     # Edith has heard about a cool new online to-do app. She goes
     # to check out its homepage
-    browser.get("http://localhost:8000")
+    browser.get(live_server.url)
     # She notices the page title and header mention to-do lists
     assert "To-Do" in browser.title
 
 
-def test_can_start_a_list_and_retrieve_it_later(browser):
+def test_can_start_a_list_and_retrieve_it_later(browser, live_server):
     # Edith has heard about a cool new online to-do app. She goes
     # to check out its homepage
-    browser.get("http://localhost:8000")
+    browser.get(live_server.url)
     # She notices the page title and header mention to-do lists
     assert "To-Do" in browser.title
     header_text = browser.find_element_by_tag_name('h1').text
