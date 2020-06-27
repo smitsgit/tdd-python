@@ -2,7 +2,10 @@ import time
 
 from selenium import webdriver
 import pytest
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.keys import Keys
+
+MAX_TIME = 5
 
 
 @pytest.fixture
@@ -12,6 +15,7 @@ def browser():
     browser.quit()
 
 
+@pytest.mark.django_db
 def test_app_title_is_shown(browser, live_server):
     # Edith has heard about a cool new online to-do app. She goes
     # to check out its homepage
@@ -20,6 +24,7 @@ def test_app_title_is_shown(browser, live_server):
     assert "To-Do" in browser.title
 
 
+@pytest.mark.django_db
 def test_can_start_a_list_and_retrieve_it_later(browser, live_server):
     # Edith has heard about a cool new online to-do app. She goes
     # to check out its homepage
@@ -40,20 +45,20 @@ def test_can_start_a_list_and_retrieve_it_later(browser, live_server):
     # When she hits enter, the page updates, and now the page lists
     # "1: Buy peacock feathers" as an item in a to-do list
     inputbox.send_keys(Keys.ENTER)
-    time.sleep(1)
+    # time.sleep(1)
 
-    check_for_row_in_list_table(browser, "1: Buy peacock feathers")
+    wait_for_row_in_list_table(browser, "1: Buy peacock feathers")
 
     # There is still a text box inviting her to add another item. She
     # enters "Use peacock feathers to make a fly" (Edith is very methodical)
     inputbox = browser.find_element_by_id('id_new_item')
     inputbox.send_keys('Use peacock feathers to make a fly')
     inputbox.send_keys(Keys.ENTER)
-    time.sleep(1)
+    # time.sleep(1)
 
     # The page updates again, and now shows both items on her list
-    check_for_row_in_list_table(browser, "1: Buy peacock feathers")
-    check_for_row_in_list_table(browser, "2: Use peacock feathers to make a fly")
+    wait_for_row_in_list_table(browser, "1: Buy peacock feathers")
+    wait_for_row_in_list_table(browser, "2: Use peacock feathers to make a fly")
 
     # Edith wonders whether the site will remember her list. Then she sees
     # that the site has generated a unique URL for her -- there is some
@@ -64,7 +69,15 @@ def test_can_start_a_list_and_retrieve_it_later(browser, live_server):
     # Satisfied, she goes back to sleep
 
 
-def check_for_row_in_list_table(browser, row_text):
-    table = browser.find_element_by_id('id_list_table')
-    rows = table.find_elements_by_tag_name('tr')
-    assert row_text in [row.text for row in rows], f"New Item didn't appear in table {table.text}"
+def wait_for_row_in_list_table(browser, row_text):
+    start_time = time.time()
+    while True:
+        try:
+            table = browser.find_element_by_id('id_list_table')
+            rows = table.find_elements_by_tag_name('tr')
+            assert row_text in [row.text for row in rows]
+            return
+        except (AssertionError, WebDriverException) as e:
+            if time.time() - start_time > MAX_TIME:
+                raise e
+            time.sleep(0.2)

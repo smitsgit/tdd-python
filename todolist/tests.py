@@ -8,6 +8,7 @@ from .models import Item
 # def test_bad_math():
 #     assert 10 == 15, "Bad math"
 
+@pytest.mark.django_db
 def test_home_page_test(client):
     response = client.get('/')
     assertTemplateUsed(response, "home.html")
