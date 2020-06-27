@@ -1,7 +1,8 @@
 # Create your tests here.
+import pytest
 from django.template.loader import render_to_string
 from pytest_django.asserts import assertTemplateUsed
-from todolist.models import Item
+from .models import Item
 
 
 # def test_bad_math():
@@ -12,9 +13,37 @@ def test_home_page_test(client):
     assertTemplateUsed(response, "home.html")
 
 
+@pytest.mark.django_db
+def test_only_saves_when_necessary(client):
+    client.get('/')
+    assert Item.objects.count() == 0
+
+
+@pytest.mark.django_db
 def test_can_save_a_post(client):
     response = client.post('/', data={'item_text': 'A new item added'})
-    assert 'A new item added' in response.content.decode('utf-8')
+    assert Item.objects.count() == 1, "More items found than expected"
+    new_item = Item.objects.first()
+    assert new_item.text == 'A new item added'
+
+    assert response.status_code == 302
+    assert response['location'] == '/'
+
+
+@pytest.mark.django_db
+def test_redirect_after_post(client):
+    response = client.post('/', data={'item_text': 'A new item added'})
+    assert response.status_code == 302
+    assert response['location'] == '/'
+
+@pytest.mark.django_db
+def test_displays_all_items_after_post(client):
+    client.post('/', data={'item_text': 'Item-1'})
+    client.post('/', data={'item_text': 'Item-2'})
+
+    response = client.get('/')
+    assert 'Item-1' in response.content.decode('utf-8')
+    assert 'Item-2' in response.content.decode('utf-8')
 
 
 def test_save_and_retrieve_item(db):
@@ -33,7 +62,3 @@ def test_save_and_retrieve_item(db):
     second_saved_item = items[1]
     assert first_saved_item.text == 'Hello Der how are you ?'
     assert second_saved_item.text == 'What the fuck is happening ?'
-
-
-
-
