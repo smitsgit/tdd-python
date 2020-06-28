@@ -111,7 +111,7 @@ def test_multiple_users_can_start_lists_at_different_urls(browser, live_server):
 
     # She notices that her list has a unique URL
     edith_list_url = browser.current_url
-    assert edith_list_url == pytest_regex("^.*/list/.+")
+    assert edith_list_url == pytest_regex("^.*/lists/.+")
 
     # Now a next user francis comes along on the site
 
@@ -134,7 +134,7 @@ def test_multiple_users_can_start_lists_at_different_urls(browser, live_server):
 
     # Francis gets his own unique URL
     francis_list_url = new_browser.current_url
-    assert francis_list_url == pytest_regex("^.*/list/.+")
+    assert francis_list_url == pytest_regex("^.*/lists/.+")
     assert francis_list_url != edith_list_url
 
     # Again there is no trace of Edith's list

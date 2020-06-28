@@ -2,7 +2,7 @@
 import pytest
 from django.template.loader import render_to_string
 from pytest_django.asserts import assertTemplateUsed
-from .models import Item
+from todolist.models import Item
 
 
 # def test_bad_math():
@@ -35,16 +35,27 @@ def test_can_save_a_post(client):
 def test_redirect_after_post(client):
     response = client.post('/', data={'item_text': 'A new item added'})
     assert response.status_code == 302
-    assert response['location'] == '/'
+    assert response['location'] == '/lists/the-only-list-in-the-world'
+
 
 @pytest.mark.django_db
 def test_displays_all_items_after_post(client):
     client.post('/', data={'item_text': 'Item-1'})
     client.post('/', data={'item_text': 'Item-2'})
 
-    response = client.get('/')
+    response = client.get('/lists/the-only-list-in-the-world')
     assert 'Item-1' in response.content.decode('utf-8')
     assert 'Item-2' in response.content.decode('utf-8')
+
+
+@pytest.mark.django_db
+def test_displays_all_items(client):
+    client.post('/', data={'item_text': 'Item-1'})
+    client.post('/', data={'item_text': 'Item-2'})
+
+    response = client.get('/lists/the-only-list-in-the-world/')
+    assert 'Item-1' in response.content.decode('utf-8'), f"Expected 200 but Got: {response.status_code}"
+    assert 'Item-2' in response.content.decode('utf-8'), f"Expected 200 but Got: {response.status_code}"
 
 
 def test_save_and_retrieve_item(db):

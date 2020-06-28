@@ -4,4 +4,4 @@ geckodriver.log
 .idea
 __pycache__
 *.pyc
-test/.pytest_cache
+functional_test/.pytest_cache
